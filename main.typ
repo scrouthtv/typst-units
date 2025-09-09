@@ -67,11 +67,11 @@ let myohm = multiply(220, kilo, ohm)
 let mycurrent = divide(myvolt, myohm)
 
 When applying
-#qty(..fmt(myvolt))
+qty(..fmt(myvolt))
 on a
-#qty(..fmt(myohm, unit: multiply(mega, ohm)))
+qty(..fmt(myohm, unit: multiply(mega, ohm)))
 resistor, the current is
-#qty(..fmt(mycurrent, unit: multiply(milli, ampere), digits: 3))
+qty(..fmt(mycurrent, unit: multiply(milli, ampere), digits: 3))
 ```
 #let myvolt = multiply(115, volt)
 #let myohm = multiply(220, kilo, ohm)
@@ -165,50 +165,80 @@ C_O &= qty(..fmt(capacitance, unit: multiply(micro, farad), digits: #3)) $]
 A simple I beam is defined using
 - Height $H = qty(..fmt(height))$
 - Width $W = qty(..fmt(width))$
-- Constant thickness $t = qty(..fmt(thick)) << H, W$
+- Constant thickness $t = qty(..fmt(thick))$
 - Beam length $l = qty(..fmt(length))$
 - Applied force at the end $F = qty(..fmt(force))$
 - Yield strength $sigma_y = qty(..fmt(yield))$ (S355 material)
+
+Approximation for $t << W, H$:
+$ I_(y y) & approx t integral_s z^2 dif s = (W^3 t)/6 \
+I_(z z) & approx t integral_s y^2 dif s = (W H^2 t)/2 + (W^3 t)/12 $
 ]
 
-The area moment of inertia may be approximated in thin-walled profiles like this:
-$ I_(y y) &= integral x^2 dif a = t integral x^2 dif s \
-&= 2 t integral_(-W/2)^(+W/2) s^2 dif s
-= 2 t [1/3 s^3]_(-W/2)^(+W/2) = 2t dot 1/3 dot 2 dot W^3/8
-= underline(underline((W^3 t)/6))
-$
+```typc
+let height = multiply(140, milli, meter)
+let width = multiply(120, milli, meter)
+let thick = multiply(8, milli, meter)
+let length = multiply(3, meter)
+let force = multiply(16, kilo, newton)
+let yield = multiply(355, mega, pascal)
+```
 
-As well as $
-I_(z z) &= t integral y^2 dif s
-/*&= t (2 dot H^2/4 integral_(-W/2)^(+W/2) dif s + integral_(-H/2)^(+H/2) s^2 dif s) \
-&= t (2 dot H^2/4 W + 1/3 [s^3]_(-W/2)^(+W/2)) \*/
-= t ((W H^2)/2 + 1/3 dot 2 dot W^3/8) = underline(underline((W H^2 t)/2 + (W^3 t)/12))
-$
+We can calculate the area moment of inertia $I$ using the specified sizes:
+```typc
+let iyy = divide(multiply(pow(width, 3), thick), 6)
+let izz = add(divide(multiply(width, pow(height, 2), thick), 2),
+  divide(multiply(pow(width, 3), thick), 12))
+let mm4 = pow(multiply(milli, meter), 4)
 
+$I_(y y) = qty(..fmt(iyy, unit: mm4, digits: #0))$ "and"
+$I_(z z) = qty(..fmt(izz, unit: mm4, digits: #0))$.
+```
 #let iyy = divide(multiply(pow(width, 3), thick), 6)
 #let izz = add(divide(multiply(width, pow(height, 2), thick), 2),
   divide(multiply(pow(width, 3), thick), 12))
 #let mm4 = pow(multiply(milli, meter), 4)
 
-Using the specific sizes, we calculate
-$I_(y y) = qty(..fmt(iyy, unit: mm4, digits: #0))$ and $I_(z z) = qty(..fmt(izz, unit: mm4, digits: #0))$.
+#result[
+$I_(y y) = qty(..fmt(iyy, unit: mm4, digits: #0))$
+and
+$I_(z z) = qty(..fmt(izz, unit: mm4, digits: #0))$.]
 
+The section modulus $W$ measures the resistance against a bending moment $M$:
+$ W := M/sigma $
+We can calculate it automatically using
+```typc
+let wy = multiply(iyy, divide(2, width))
+let wz = multiply(izz, divide(2, height))
+let mm3 = pow(multiply(milli, meter), 3)
+
+$W_y = I_(y y)/(W\/2) = qty(..fmt(wy, unit: mm3, digits: #0))$ and
+$W_z = I_(y y)/(H\/2) = qty(..fmt(wz, unit: mm3, digits: #0))$.
+```
 #let wy = multiply(iyy, divide(2, width))
 #let wz = multiply(izz, divide(2, height))
 #let mm3 = pow(multiply(milli, meter), 3)
 
-The section modulus measures the resistance against a bending moment:
+#result[
 $W_y = I_(y y)/(W\/2) = qty(..fmt(wy, unit: mm3, digits: #0))$ and
-$W_z = I_(y y)/(H\/2) = qty(..fmt(wz, unit: mm3, digits: #0))$.
+$W_z = I_(y y)/(H\/2) = qty(..fmt(wz, unit: mm3, digits: #0))$.]
 
-#let stress = divide(multiply(force, length), wz)
-#let mpa = multiply(mega, pascal)
-Now we can calculate the stress under load: $sigma = M/W = (F dot l)/W
-= qty(..fmt(stress, unit: mpa, digits: #0))$.
+Finally, we can analyze the stress under load  and calculate the reserve factor $R F = "strength"/"load"$:
+$ sigma_"load" = M/W = (F dot l)/W quad quad R F = sigma_y/sigma_"load" $
 
-#let reserve = divide(yield, stress)
-In this scenario, the reserve factor were
-$R F = "strength"/"load" = qty(..fmt(reserve, unit: percent, digits: #1))$.
+```typc
+let load = divide(multiply(force, length), wz)
+let reserve = divide(yield, load)
+$ sigma = qty(..fmt(load, unit: multiply(mega, pascal), digits: #0)) quad
+R F = qty(..fmt(reserve, unit: percent, digits: #1)) $
+```
+
+#let load = divide(multiply(force, length), wz)
+#let reserve = divide(yield, load)
+#result[
+$ sigma = qty(..fmt(load, unit: multiply(mega, pascal), digits: #0)) quad
+R F = qty(..fmt(reserve, unit: percent, digits: #1)) $]
+
 
 // ============================================================================
 #pagebreak()
