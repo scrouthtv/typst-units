@@ -72,10 +72,19 @@
 // format. For example
 // let minute = _define_unit(multiply(60, second), "min ")
 #let define_unit(qty, format) = {
-  qty.iv = _iv(qty) * _value(qty)
-  qty.value = 1
-  qty.format = format
-  return qty
+  if type(qty) == dictionary {
+    qty.iv = _iv(qty) * _value(qty)
+    qty.value = 1
+    qty.format = format
+    return qty
+  } else if type(qty) == int or type(qty) == float {
+    let unit = unity
+    unit.iv = qty
+    unit.format = format
+    return unit
+  } else {
+    panic("Unknown format, type is " + str(type(x)) + "! If in math mode, make sure to escape number.")
+  }
 }
 
 // Formatting

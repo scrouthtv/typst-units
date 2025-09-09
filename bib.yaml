@@ -1,0 +1,26 @@
+buck-ti:
+  type: article
+  title: Basic Calculation of a Buck Converter's Power Stage
+  author: Brigitte Hauke
+  organization: Texas Instruments
+  date: 2011-12
+  url: https://www.ti.com/lit/an/slva477b/slva477b.pdf
+
+buck-analog:
+  type: article
+  title: Selecting the Right Inductor Current Ripple
+  author: Frederik Dostal
+  organization: Analog Devices
+  date: 2023-03-06
+  url: https://www.analog.com/en/resources/technical-articles/selecting-the-right-inductor-current-ripple.html
+
+unify:
+  type: repository
+  title: Format numbers, units, and ranges in Typst correctly.
+  author: Christian Hecker
+  url: https://github.com/ChHecker/unify
+
+isa:
+  type: reference
+  title: ISO 2533:1975 -- Standard Atmosphere
+  date: 1975
