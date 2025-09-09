@@ -2,7 +2,9 @@
 #import "defs.typ": *
 #import "@preview/unify:0.7.1": qty
 
-= Example 1: Basic Conversions
+#set heading(numbering: "1.")
+
+= Example: Basic Conversions
 
 #let kwh = multiply(kilo, watt, hour)
 #let mj = multiply(mega, joule)
@@ -17,7 +19,7 @@ $qty(..fmt(myenergyqty)) = qty(..fmt(myenergyqty, unit: mj))$
 We can use Ohm's law: $U = R dot I <=> I = U / R$.
 When applying #qty(..fmt(myvolt)) on a #qty(..fmt(myohm, unit: multiply(mega, ohm))) resistor, the current is #qty(..fmt(thecurrent, unit: multiply(milli, ampere), digits: 3)).
 
-= Example 2: Switching Converter
+= Example: Switching Converter
 #let khz = multiply(kilo, hertz)
 
 #let vi = multiply(5, volt)
@@ -51,24 +53,28 @@ Now we require the output voltage ripple to be less than $Delta V_O = qty(..fmt(
 $ C_O >= (Delta I_L)/(8 f_S Delta V_O) =
 qty(..fmt(capacitance, unit: ufarad, digits: #3)) $
 
+= Example: Pressure Conversion and Defining Custom Units
+
 #pagebreak()
-= Example 3: Stress Analysis
+= Example: Stress Analysis
 #let height = multiply(140, milli, meter)
 #let width = multiply(120, milli, meter)
 #let thick = multiply(8, milli, meter)
 #let length = multiply(3, meter)
-#let force = multiply(18, kilo, newton)
+#let force = multiply(16, kilo, newton)
+#let yield = multiply(355, mega, pascal)
 
 #columns(2)[
 #include "ibeam.typ"  // Show a little picture
 #colbreak()
 
-A very simple I beam is defined using
+A simple I beam is defined using
 - Height $H = qty(..fmt(height))$
 - Width $W = qty(..fmt(width))$
 - Constant thickness $t = qty(..fmt(thick)) << H, W$
 - Beam length $l = qty(..fmt(length))$
 - Applied force at the end $F = qty(..fmt(force))$
+- Yield strength $sigma_y = qty(..fmt(yield))$ (S355 material)
 ]
 
 The area moment of inertia may be approximated in thin-walled profiles like this:
@@ -82,7 +88,7 @@ As well as $
 I_(z z) &= t integral y^2 dif s
 /*&= t (2 dot H^2/4 integral_(-W/2)^(+W/2) dif s + integral_(-H/2)^(+H/2) s^2 dif s) \
 &= t (2 dot H^2/4 W + 1/3 [s^3]_(-W/2)^(+W/2)) \*/
-= t ((W H^2)/2 + 1/3 dot 2 dot W^3/8) = (W H^2 t)/2 + (W^3 t)/12
+= t ((W H^2)/2 + 1/3 dot 2 dot W^3/8) = underline(underline((W H^2 t)/2 + (W^3 t)/12))
 $
 
 #let iyy = divide(multiply(pow(width, 3), thick), 6)
@@ -101,4 +107,11 @@ The section modulus measures the resistance against a bending moment:
 $W_y = I_(y y)/(W\/2) = qty(..fmt(wy, unit: mm3, digits: #0))$ and
 $W_z = I_(y y)/(H\/2) = qty(..fmt(wz, unit: mm3, digits: #0))$.
 
-Now we can calculate the tension under a load.
+#let stress = divide(multiply(force, length), wz)
+#let mpa = multiply(mega, pascal)
+Now we can calculate the stress under load: $sigma = M/W = (F dot l)/W
+= qty(..fmt(stress, unit: mpa, digits: #0))$.
+
+#let reserve = divide(yield, stress)
+In this scenario, the reserve factor were
+$R F = "strength"/"load" = qty(..fmt(reserve, unit: percent, digits: #1))$.
